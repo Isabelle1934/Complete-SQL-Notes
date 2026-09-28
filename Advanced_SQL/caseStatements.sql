@@ -27,6 +27,9 @@
 
 # SCHEMA 1 - customers
 
+CREATE DATABASE IF NOT EXISTS cases;
+USE cases;
+
 CREATE TABLE customers (
 customer_id INT PRIMARY KEY,
 customer_name VARCHAR(50),
@@ -141,5 +144,198 @@ FROM orders o;
 
 -- 7) For every customer, show total order value and label them VIP (>=12000), Regular (>=7000), or Low Spender.
 
+SELECT o.*,
+	   CASE WHEN o.total_value >= 12000 THEN "VIP"
+			WHEN o.total_value >= 7000 THEN "Regular"
+            ELSE "Low Spender"
+	   END AS category
+FROM (
+	SELECT o.*,
+	   SUM(o.order_value) OVER(
+			PARTITION BY o.customer_id
+       ) AS total_value
+	FROM orders o 
+) o;
 
+-- 8) Find cities with at least 2 Delivered orders using conditional aggregation and HAVING.
 
+SELECT c.city
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+WHERE o.order_status = "Delivered"
+GROUP BY c.city
+HAVING COUNT(o.order_status) >= 2;
+
+# OR
+
+SELECT c.city
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.city
+HAVING SUM(
+	CASE WHEN o.order_status = "Delivered" THEN 1
+		 ELSE 0
+	END 
+) >= 2;
+
+-- 9) Create a custom status priority: Pending=1, Delivered=2, Returned=3, Cancelled=4, then sort by priority.
+
+SELECT o.*
+FROM (
+	SELECT o.*,
+		CASE WHEN o.order_status = "Pending" THEN "1"
+			WHEN o.order_status = "Delivered" THEN "2"
+			WHEN o.order_status = "Returned" THEN "3"
+			WHEN o.order_status = "Cancelled" THEN "4"
+			ELSE "0"
+		END AS custom_status
+	FROM orders o
+) o
+ORDER BY o.custom_status;
+
+-- 10) Create a customer report with total orders, delivered orders, cancelled/returned orders, and a Clean/Review CASE label.
+
+SELECT c.customer_id, c.customer_name,
+	  COUNT(order_id) AS total_orders,
+	  COUNT(CASE
+				WHEN o.order_status = 'Delivered' THEN 1
+			END) AS delivered_orders,
+      COUNT(CASE 
+				WHEN o.order_status IN ('Cancelled','Returned') THEN 1
+			END) AS cancelled_returned_orders,
+      CASE 
+		  WHEN COUNT(CASE 
+						 WHEN o.order_status IN ('Returned','Cancelled') THEN 1
+					 END) = 0 THEN 'Clean'
+		  ELSE 'Review'
+		END AS customer_label
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+GROUP BY c.customer_id,c.customer_name;
+
+-- ------------------------------------------------------------------------
+
+# Scenario 2 - Logistics & Delivery
+
+-- 1) SCHEMA - Drivers
+
+CREATE TABLE drivers (
+driver_id INT PRIMARY KEY,
+driver_name VARCHAR(50),
+city VARCHAR(50)
+);
+
+INSERT INTO drivers VALUES
+(1,'Ramesh','Mumbai'),
+(2,'Suresh','Pune'),
+(3,'Akash','Nagpur'),
+(4,'Vikram','Mumbai'),
+(5,'Rohit','Pune'),
+(6,'Anil','Nagpur');
+
+SELECT * FROM drivers;
+
+DESCRIBE drivers;
+
+-- 2) SCHEMA - deliveries
+
+CREATE TABLE deliveries (
+delivery_id INT PRIMARY KEY,
+driver_id INT,
+delivery_date DATE,
+delivery_time_hours DECIMAL(5,2),
+delivery_value DECIMAL(10,2),
+status VARCHAR(20),
+FOREIGN KEY (driver_id) REFERENCES drivers(driver_id)
+);
+
+INSERT INTO deliveries VALUES
+(201,1,'2026-01-05',4.5,5000,'Delivered'),
+(202,2,'2026-01-06',6.0,7000,'Delayed'),
+(203,1,'2026-01-10',3.5,4000,'Delivered'),
+(204,3,'2026-01-12',5.0,8000,'Delivered'),
+(205,4,'2026-01-15',7.0,6000,'Delayed'),
+(206,2,'2026-01-18',4.0,5000,'Delivered'),
+(207,5,'2026-01-20',5.5,9000,'Delivered'),
+(208,3,'2026-01-22',4.0,6000,'Delivered'),
+(209,1,'2026-01-25',6.0,7000,'Delayed'),
+(210,6,'2026-01-28',3.0,5000,'Delivered'),
+(211,4,'2026-02-02',5.5,7000,'Delivered'),
+(212,5,'2026-02-05',4.5,6000,'Delayed');
+
+SELECT * FROM deliveries;
+
+DESCRIBE deliveries;
+
+-- ---------------------------------------------------------------------
+
+-- 1) Classify delivery time as Fast (<4 hours), Normal (4–5.5 hours), or Slow (>5.5 hours).
+
+SELECT d.driver_id,
+	   d.delivery_date,
+       d.delivery_time_hours,
+       d.delivery_value,
+       d.status,
+	CASE 
+		WHEN d.delivery_time_hours < 4 THEN 'Fast'
+        WHEN d.delivery_time_hours < 5.5 THEN 'Normal'
+        ELSE 'Slow'
+	END AS delivery_time_category
+FROM deliveries d;
+
+-- 2) Classify delivery value as High (>=7000), Medium (>=5000), or Low (<5000).
+
+SELECT d.*,
+	   CASE 
+		   WHEN d.delivery_value >= 7000 THEN 'High'
+           WHEN d.delivery_value >= 5000 THEN 'Medium'
+           ELSE 'Low'
+		END value_category
+FROM deliveries d;
+
+-- 3) Create a status label: Delayed → Needs Attention; Delivered → On Time; otherwise Unknown.
+
+SELECT d.*,
+	   CASE 
+		   WHEN d.status = 'Delayed' THEN 'Needs Attention'
+           WHEN d.status = 'Delivered' THEN 'On Time'
+           ELSE 'Unknown'
+		END status_label
+FROM deliveries d;
+
+-- 4) Count delayed deliveries for each driver using SUM(CASE...).
+
+SELECT d1.driver_id,
+	   d1.driver_name,
+       COUNT(
+			CASE 
+                WHEN d2.status = 'Delayed' THEN 1
+			END 
+       ) AS delayed_deliveries
+FROM drivers d1
+JOIN deliveries d2
+ON d1.driver_id = d2.driver_id
+GROUP BY d1.driver_id, d1.driver_name;
+
+-- 5) Calculate delayed-delivery percentage for each driver.
+
+SELECT d1.driver_id,
+       d1.driver_name,
+       d2.total_deliveries,
+       d2.delayed_deliveries,
+       (d2.delayed_deliveries / d2.total_deliveries) * 100 AS percentage
+FROM (
+	SELECT d3.driver_id,
+			COUNT(CASE
+					  WHEN d3.status = 'Delayed' THEN 1
+				  END) AS delayed_deliveries,
+			COUNT(*) AS total_deliveries
+	FROM deliveries d3
+    GROUP BY d3.driver_id
+) d2
+JOIN drivers d1
+ON d2.driver_id = d1.driver_id;
+       
