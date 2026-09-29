@@ -261,7 +261,6 @@ ORDER BY lowest_avg_delivery_time ASC
 LIMIT 1;
 
 -- OR
-
 -- (using subqueries)
 
 SELECT *
