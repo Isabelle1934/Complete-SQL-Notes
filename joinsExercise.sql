@@ -10,11 +10,11 @@ CREATE TABLE departments (
 );
 
 INSERT INTO departments VALUES
-(1, 'IT', 'Mumbai'),
-(2, 'HR', 'Delhi'),
-(3, 'Finance', 'Pune'),
-(4, 'Marketing', 'Bangalore'),
-(5, 'Support', 'Chennai');
+('IT', 'Mumbai'),
+('HR', 'Delhi'),
+('Finance', 'Pune'),
+('Marketing', 'Bangalore'),
+('Support', 'Chennai');
 
 ## table employees
 
@@ -27,13 +27,13 @@ CREATE TABLE employees (
 );
 
 INSERT INTO employees VALUES
-(101, 'Rohan', 70000, 1),
-(102, 'Sneha', 55000, 2),
-(103, 'Amit', 60000, 1),
-(104, 'Priya', 45000, 3),
-(105, 'Karan', 50000, NULL),
-(106, 'Neha', 52000, 4),
-(107, 'Arjun', 48000, 2);
+('Rohan', 70000, 1),
+('Sneha', 55000, 2),
+('Amit', 60000, 1),
+('Priya', 45000, 3),
+('Karan', 50000, NULL),
+('Neha', 52000, 4),
+('Arjun', 48000, 2);
 
 ## table projects
 
@@ -45,11 +45,11 @@ CREATE TABLE projects (
 );
 
 INSERT INTO projects VALUES
-(201, 'AI System', 101),
-(202, 'HR Portal', 102),
-(203, 'Banking App', 104),
-(204, 'Website Revamp', 101),
-(205, 'Marketing Ads', 106);
+('AI System', 101),
+('HR Portal', 102),
+('Banking App', 104),
+('Website Revamp', 101),
+('Marketing Ads', 106);
 
 
 ## Show employee name and their department name.
@@ -86,10 +86,10 @@ CREATE TABLE Departments_data (
 );
 
 INSERT INTO Departments_data VALUES
-(1, 'Engineering', 'Pune'),
-(2, 'HR', 'Mumbai'),
-(3, 'Finance', 'Delhi'),
-(4, 'Marketing', 'Bangalore');
+('Engineering', 'Pune'),
+('HR', 'Mumbai'),
+('Finance', 'Delhi'),
+('Marketing', 'Bangalore');
 
 
 ## employee_data
@@ -102,12 +102,12 @@ CREATE TABLE Employees_data (
 );
 
 INSERT INTO Employees_data VALUES
-(101, 'Amit', 60000, 1),
-(102, 'Neha', 50000, 2),
-(103, 'Raj', 70000, 1),
-(104, 'Sneha', 45000, NULL),
-(105, 'Karan', 55000, 4),
-(106, 'Priya', 48000, 5);
+('Amit', 60000, 1),
+('Neha', 50000, 2),
+('Raj', 70000, 1),
+('Sneha', 45000, NULL),
+('Karan', 55000, 4),
+('Priya', 48000, 5);
 
 ## projects_data
 
@@ -118,21 +118,21 @@ CREATE TABLE Projects_data (
 );
 
 INSERT INTO Projects_data VALUES
-(201, 'AI System', 1),
-(202, 'Recruitment Drive', 2),
-(203, 'Budget Planning', 3),
-(204, 'Ad Campaign', 4),
-(205, 'Cloud Migration', 1);
+('AI System', 1),
+('Recruitment Drive', 2),
+('Budget Planning', 3),
+('Ad Campaign', 4),
+('Cloud Migration', 1);
 
 ## employee_project
 
 CREATE TABLE Employee_Projects (
-    emp_id SERIAL PRIMARY KEY,
-    proj_id INT
+    emp_id FOREIGN KEY,
+    proj_id FOREIGN KEY
 );
 
 INSERT INTO Employee_Projects VALUES
-(101, 201),
+( , ),
 (101, 205),
 (102, 202),
 (103, 201),
