@@ -21,14 +21,15 @@
 
 -- -------------------------------------------------------------------------
 
+CREATE DATABASE IF NOT EXISTS cases;
+USE cases;
+
 -- Scenario Based Assignment
 
 -- Scenario 1 - E-Commerce Orders
 
 # SCHEMA 1 - customers
 
-CREATE DATABASE IF NOT EXISTS cases;
-USE cases;
 
 CREATE TABLE customers (
 customer_id INT PRIMARY KEY,
@@ -338,4 +339,84 @@ FROM (
 ) d2
 JOIN drivers d1
 ON d2.driver_id = d1.driver_id;
-       
+
+-- 6) Calculate total delivery value and delayed delivery value for each city.
+
+SELECT d1.city,
+	   SUM(d2.delivery_value) AS total_delivery_value,
+	   SUM(CASE
+			   WHEN d2.status = 'Delayed' THEN d2.delivery_value
+			   ELSE 0
+		   END) AS delayed_delivery_value
+FROM deliveries d2
+JOIN drivers d1
+ON d1.driver_id = d2.driver_id
+GROUP BY d1.city;
+
+-- 7) Classify drivers from average delivery time: Excellent <=4, Good <=5.5, Needs Improvement >5.5.
+
+SELECT d2.driver_id,
+       d2.driver_name,
+       d2.avg_delivery_time,
+       CASE
+		   WHEN d2.avg_delivery_time <= 4 THEN 'Excellent'
+           WHEN d2.avg_delivery_time <= 5.5 THEN 'Good'
+		   ELSE 'Needs Improvement'
+	   END time_tags
+FROM (
+	 SELECT d1.driver_id,
+		    d1.driver_name,
+            AVG(d2.delivery_time_hours) AS avg_delivery_time
+     FROM drivers d1
+     JOIN deliveries d2
+     ON d1.driver_id = d2.driver_id
+     GROUP BY d1.driver_id,d1.driver_name
+) d2;
+
+-- 8) Using CASE inside SUM, calculate Fast-delivery value and Slow-delivery value for each driver.
+
+SELECT d2.driver_id,
+	   d2.driver_name,
+       SUM(CASE
+			   WHEN d1.delivery_time_hours < 4 THEN d1.delivery_value
+               ELSE 0
+		   END) AS fast_delivery,
+           
+		SUM(CASE 
+				WHEN d1.delivery_time_hours > 5.5 THEN d1.delivery_value
+                ELSE 0
+			END) AS slow_delivery
+FROM drivers d2
+JOIN deliveries d1
+ON d2.driver_id=d1.driver_id
+GROUP BY d2.driver_id,d2.driver_name;
+
+-- 9) Create a custom status priority and sort deliveries by priority, then delivery date.
+
+SELECT d2.*,
+	   CASE 
+		   WHEN d2.status = 'Delayed' THEN 1
+           WHEN d2.status = 'Delivered' THEN 2
+           ELSE 3
+	   END priority
+FROM deliveries d2
+ORDER BY priority, delivery_date;
+
+-- 10) Using a subquery or CTE, calculate each driver's total delivery value and label them Top Performer >=14000, Strong >=10000, Developing otherwise.
+
+SELECT d1.driver_id,
+	   d1.driver_name,
+       d2.total_delivery_value,
+       CASE
+		   WHEN d2.total_delivery_value >= 14000 THEN 'Top Performer'
+           WHEN d2.total_delivery_value >= 10000 THEN 'Strong'
+           ELSE 'Developing'
+	   END classification
+FROM (
+	SELECT d3.driver_id,
+		SUM(d3.delivery_value) AS total_delivery_value
+	FROM deliveries d3
+	GROUP BY d3.driver_id
+) d2
+JOIN drivers d1
+ON d1.driver_id = d2.driver_id;
