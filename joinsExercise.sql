@@ -19,7 +19,7 @@ INSERT INTO departments VALUES
 ## table employees
 
 CREATE TABLE employees (
-    emp_id INT PRIMARY KEY,
+    emp_id SERIAL PRIMARY KEY,
     name VARCHAR(50),
     salary INT,
     dept_id INT,
@@ -38,7 +38,7 @@ INSERT INTO employees VALUES
 ## table projects
 
 CREATE TABLE projects (
-    project_id INT PRIMARY KEY,
+    project_id SERIAL PRIMARY KEY,
     project_name VARCHAR(50),
     emp_id INT,
     FOREIGN KEY (emp_id) REFERENCES employees(emp_id)
@@ -80,7 +80,7 @@ ON e.dept_id = d.dept_id;
 ## departments data
 
 CREATE TABLE Departments_data (
-    dept_id INT PRIMARY KEY,
+    dept_id SERIAL PRIMARY KEY,
     dept_name VARCHAR(50),
     location VARCHAR(50)
 );
@@ -95,7 +95,7 @@ INSERT INTO Departments_data VALUES
 ## employee_data
 
 CREATE TABLE Employees_data (
-    emp_id INT PRIMARY KEY,
+    emp_id SERIAL PRIMARY KEY,
     emp_name VARCHAR(50),
     salary INT,
     dept_id INT
@@ -112,7 +112,7 @@ INSERT INTO Employees_data VALUES
 ## projects_data
 
 CREATE TABLE Projects_data (
-    proj_id INT PRIMARY KEY,
+    proj_id SERIAL PRIMARY KEY,
     proj_name VARCHAR(50),
     dept_id INT
 );
@@ -127,7 +127,7 @@ INSERT INTO Projects_data VALUES
 ## employee_project
 
 CREATE TABLE Employee_Projects (
-    emp_id INT,
+    emp_id SERIAL PRIMARY KEY,
     proj_id INT
 );
 
