@@ -133,11 +133,11 @@ CREATE TABLE Employee_Projects (
 
 INSERT INTO Employee_Projects VALUES
 ( , ),
-(101, 205),
-(102, 202),
-(103, 201),
-(105, 204),
-(107, 203);
+( , ),
+( , ),
+( , ),
+( , ),
+( , );
 
 ## Show employee names along with their department names.
 SELECT d.dept_id, e.emp_name, d.dept_name
