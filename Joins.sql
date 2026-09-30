@@ -4,7 +4,7 @@ USE Joins;
 ## Inner Join(Intersection)
 
 CREATE TABLE student(
-id INT PRIMARY KEY,
+id INT SERIAL PRIMARY KEY,
 name VARCHAR(50)
 );
 
