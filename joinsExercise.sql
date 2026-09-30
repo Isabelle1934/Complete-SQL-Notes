@@ -4,7 +4,7 @@ USE joinsExercise;
 ## table department
 
 CREATE TABLE departments (
-    dept_id INT PRIMARY KEY,
+    dept_id SERIAL PRIMARY KEY,
     dept_name VARCHAR(50),
     location VARCHAR(50)
 );
